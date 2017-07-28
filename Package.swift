@@ -4,9 +4,8 @@ import PackageDescription
 
 let package = Package(
     name: "SwiftTcl",
-    targets: [Target(name: "Tcl8_6"),
-              Target(name: "SwiftTcl_c", dependencies:["Tcl8_6"]),
-              Target(name: "SwiftTcl", dependencies:["SwiftTcl_c"]),
-              Target(name: "SwiftTclDemo", dependencies:["SwiftTcl"])]
+	dependencies: [
+		.Package(url: "https://github.com/snoe925/SwiftTcl8_6.git", majorVersion: 5)
+	]
 )
 

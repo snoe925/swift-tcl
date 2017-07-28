@@ -20,3 +20,11 @@ SwiftTcl.xcodeproj: Package.swift Makefile build
 	swift package -Xlinker -L$(TCLLIBPATH) -Xlinker -ltcl8.6 -Xlinker -ltclstub8.6 generate-xcodeproj
 	@echo "NOTE: You will need to manually set the working directory for the SwiftTclDemo scheme to the root directory of this tree."
 	@echo "Thanks Apple"
+
+libBanana.so: Sources/banana.swift
+	-swift build -Xswiftc -emit-library -Xswiftc -o -Xswiftc libBanana.so \
+		-Xswiftc -Xlinker -Xswiftc -ltcl8.6 \
+		-Xswiftc -Xlinker -Xswiftc -ltclrefcount8.6 \
+		-Xswiftc -Xlinker -Xswiftc -ltclstub8.6 \
+		-Xswiftc -Xlinker -Xswiftc -lz
+	test -f libBanana.so
