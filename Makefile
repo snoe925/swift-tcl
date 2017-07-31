@@ -29,7 +29,7 @@ SwiftTcl.xcodeproj: Package.swift Makefile build
 ifeq ($(UNAME_S),Linux)
 install: $(TARGET)
 	cp $(TARGET) /usr/lib/x86_64-linux-gnu
-	ldconfig $(TARGET)
+	ldconfig /usr/lib/x86_64-linux-gnu/libSwiftTcl.so
 endif
 
 ifeq ($(UNAME_S),Darwin)
