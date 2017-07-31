@@ -1,41 +1,41 @@
-#
-# tcl library path for brew - needs to be parameterized somehow
-#
-# version for TCL brew package
-TCLVERSION=8.6.6_2
-BREWROOT=/usr/local/Cellar
-#TCLLIBPATH=$(BREWROOT)/tcl-tk/$(TCLVERSION)/lib
-TCLLIBPATH=/usr/lib
-TCLINCPATH=$(BREWROOT)/tcl-tk/$(TCLVERSION)/include
+UNAME_S := $(shell uname -s)
 
-BUILD=./.build
+ifeq ($(UNAME_S),Linux)
+    EXTRA_SWIFTLINK=
+    TARGET = .build/debug/libSwiftTcl.so
+endif
 
-default: build
+ifeq ($(UNAME_S),Darwin)
+    TCLVERSION=8.6.6_2
+    BREWROOT=/usr/local/Cellar
+    TCLLIBPATH=$(BREWROOT)/tcl-tk/$(TCLVERSION)/lib
+    TCLINCPATH=$(BREWROOT)/tcl-tk/$(TCLVERSION)/include
+    EXTRA_SWIFTLINK=-Xlinker -L/usr/local/lib \
+        -Xlinker -L$(TCLLIBPATH) \
+        -Xcc -I$(TCLINCPATH)
+    TARGET = .build/debug/libSwiftTcl.dylib
+endif
 
-build: $(BUILD)
+default: $(TARGET)
 
-$(BUILD): Package.swift Makefile
-	swift build -Xlinker -L$(TCLLIBPATH) -Xcc -I$(TCLINCPATH)
+$(TARGET): Package.swift Makefile
+	swift build $(EXTRA_SWIFTLINK)
 
 SwiftTcl.xcodeproj: Package.swift Makefile build
-	swift package -Xlinker -L$(TCLLIBPATH) -Xlinker -ltcl8.6 -Xlinker -ltclstub8.6 generate-xcodeproj
+	swift package $(EXTRA_SWIFTLINK) generate-xcodeproj
 	@echo "NOTE: You will need to manually set the working directory for the SwiftTclDemo scheme to the root directory of this tree."
 	@echo "Thanks Apple"
 
-# Brute force compile
-libSwiftTcl.so: Sources/tcl.swift Sources/tcl-array.swift Sources/tcl-object.swift Sources/tcl-interp.swift
-	mkdir -p .build/debug
-	-swift build -Xswiftc -emit-library -Xswiftc -o -Xswiftc .build/debug/libSwiftTcl.so \
-		-Xswiftc -Xlinker -Xswiftc -ltcl8.6 \
-		-Xswiftc -Xlinker -Xswiftc -ltclrefcount8.6 \
-		-Xswiftc -Xlinker -Xswiftc -ltclstub8.6 \
-		-Xswiftc -Xlinker -Xswiftc -lz
-	test -f libSwiftTcl.so
+ifeq ($(UNAME_S),Linux)
+install: $(TARGET)
+	cp $(TARGET) /usr/lib/x86_64-linux-gnu
+	ldconfig $(TARGET)
+endif
 
-install: build
-		cp .build/debug/libSwiftTcl.so /usr/lib/x86_64-linux-gnu
-		ldconfig /usr/lib/x86_64-linux-gnu/libSwiftTcl.so
+ifeq ($(UNAME_S),Darwin)
+install: $(TARGET)
+	cp $(TARGET) /usr/local/lib
+endif
 
 clean:
-	rm -rf libSwiftTcl.so .build Package.pins
-
+	rm -rf $(TARGET) .build Package.pins
